@@ -15,3 +15,4 @@
     - manager can be automatically signed up via magic link
     - developer can join project via magic link on email
     - developer can be automatically signed up via magic link
+- we will also aknowledge there could be more functionality for asigning roles to users, but for the scope of thir project that functionality won't be included either
