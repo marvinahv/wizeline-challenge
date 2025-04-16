@@ -158,7 +158,7 @@ class Api::V1::TasksControllerTest < ActionDispatch::IntegrationTest
   
   test "only the assigned developer can update a task's status" do
     # Assigned developer can update task status
-    put api_v1_task_status_url(@task),
+    put status_api_v1_task_url(@task),
         params: { status: 'in_progress' },
         headers: { 'Authorization' => "Bearer #{@developer_token}" },
         as: :json
@@ -170,7 +170,7 @@ class Api::V1::TasksControllerTest < ActionDispatch::IntegrationTest
     # Other developer cannot update task status
     original_status = @task.status
     
-    put api_v1_task_status_url(@task),
+    put status_api_v1_task_url(@task),
         params: { status: 'done' },
         headers: { 'Authorization' => "Bearer #{@other_developer_token}" },
         as: :json
@@ -180,7 +180,7 @@ class Api::V1::TasksControllerTest < ActionDispatch::IntegrationTest
     assert_equal original_status, @task.status
     
     # Project manager cannot update task status
-    put api_v1_task_status_url(@task),
+    put status_api_v1_task_url(@task),
         params: { status: 'done' },
         headers: { 'Authorization' => "Bearer #{@project_manager_token}" },
         as: :json
@@ -190,7 +190,7 @@ class Api::V1::TasksControllerTest < ActionDispatch::IntegrationTest
     assert_equal original_status, @task.status
     
     # Admin cannot update task status
-    put api_v1_task_status_url(@task),
+    put status_api_v1_task_url(@task),
         params: { status: 'done' },
         headers: { 'Authorization' => "Bearer #{@admin_token}" },
         as: :json

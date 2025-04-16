@@ -76,4 +76,13 @@
     - only admins can create new projects
     - only the admin that created a project can update its name
     - only the admin that created a project can reassign its manager
-  
+  - created focused controller tests for tasks that verify:
+    - only project managers can create tasks for their projects
+    - only the assigned developer can update a task's status
+    - project managers can update task description and assignee
+- implemented controllers with proper authorization:
+  - created ProjectsController with CRUD operations
+  - created TasksController with CRUD operations plus status updates
+  - used CanCanCan load_and_authorize_resource for authorization
+  - added nested routes for project tasks
+  - implemented a custom route for task status updates

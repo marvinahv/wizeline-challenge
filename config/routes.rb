@@ -10,6 +10,20 @@ Rails.application.routes.draw do
     namespace :v1 do
       # Authentication routes
       post 'auth/login', to: 'authentication#login'
+      
+      # Project routes
+      resources :projects do
+        # Nested task routes for project-specific tasks
+        resources :tasks, only: [:index, :create]
+      end
+      
+      # Task routes that don't need project context
+      resources :tasks, only: [:show, :update, :destroy] do
+        # Custom route for updating task status
+        member do
+          put 'status', action: 'update_status', as: 'status'
+        end
+      end
     end
   end
 
