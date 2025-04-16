@@ -156,6 +156,39 @@ class Api::V1::TasksControllerTest < ActionDispatch::IntegrationTest
     assert_equal original_assignee_id, @task.assignee_id
   end
   
+  test "only the manager assigned to a project can delete tasks" do
+    # Create a task for deletion testing
+    task_to_delete = create(:task, project: @project, assignee: @developer)
+    
+    # Admin cannot delete the task
+    delete api_v1_task_url(task_to_delete),
+           headers: { 'Authorization' => "Bearer #{@admin_token}" }
+    
+    assert_response :forbidden
+    assert Task.exists?(task_to_delete.id)
+    
+    # Developer cannot delete the task
+    delete api_v1_task_url(task_to_delete),
+           headers: { 'Authorization' => "Bearer #{@developer_token}" }
+    
+    assert_response :forbidden
+    assert Task.exists?(task_to_delete.id)
+    
+    # Other project manager cannot delete the task
+    delete api_v1_task_url(task_to_delete),
+           headers: { 'Authorization' => "Bearer #{@other_manager_token}" }
+    
+    assert_response :forbidden
+    assert Task.exists?(task_to_delete.id)
+    
+    # Project manager assigned to the project can delete the task
+    delete api_v1_task_url(task_to_delete),
+           headers: { 'Authorization' => "Bearer #{@project_manager_token}" }
+    
+    assert_response :no_content
+    assert_not Task.exists?(task_to_delete.id)
+  end
+  
   test "only the assigned developer can update a task's status" do
     # Assigned developer can update task status
     put status_api_v1_task_url(@task),

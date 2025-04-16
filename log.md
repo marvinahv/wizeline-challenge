@@ -90,3 +90,4 @@
   - implemented ability rule to ensure only admin owners can delete their projects
   - verified that projects delete their associated tasks when removed (using dependent: :destroy)
   - added tests to verify both behaviors
+- added functionality so only assigned manager can delete project tasks
