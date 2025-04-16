@@ -2,6 +2,7 @@ class Project < ApplicationRecord
   # Associations
   belongs_to :owner, class_name: 'User'
   belongs_to :manager, class_name: 'User'
+  has_many :tasks, dependent: :destroy
 
   # Validations
   validates :name, presence: true, uniqueness: true

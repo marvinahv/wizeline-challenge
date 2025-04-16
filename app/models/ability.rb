@@ -29,12 +29,35 @@ class Ability
       # Project managers can manage tasks within their projects
       if user.role == 'project_manager'
         can :manage_tasks, Project, manager_id: user.id
+        
+        # Project managers can create tasks for projects they manage
+        can :create, Task do |task|
+          task.project.manager_id == user.id
+        end
+        
+        # Project managers can update tasks for projects they manage
+        can :update, Task do |task|
+          task.project.manager_id == user.id
+        end
+        
+        # Project managers can delete tasks for projects they manage
+        can :destroy, Task do |task|
+          task.project.manager_id == user.id
+        end
+        
+        # But project managers cannot update the status of tasks
+        cannot :update_status, Task
       end
       
-      # Developers don't have any special project permissions
-      # Just leaving this here as a placeholder for future permissions
+      # Developers can view and update their assigned tasks
       if user.role == 'developer'
-        # No special project permissions at this time
+        # Developers can view all tasks in projects they're assigned to
+        can :read, Task do |task|
+          task.project.tasks.exists?(assignee_id: user.id)
+        end
+        
+        # Developers can update status of tasks assigned to them
+        can :update_status, Task, assignee_id: user.id
       end
     end
   end

@@ -53,3 +53,20 @@
     - admin users can create projects
     - admin users can update, change name, and change manager only for projects they own
     - project managers can manage tasks for projects they manage
+- decided on task rules:
+  - tasks belong to a project
+  - tasks can only be created by the project's manager
+  - tasks must have a description (no separate title field)
+  - tasks must have an assigned developer
+  - tasks must have a status (todo, in_progress, done)
+  - tasks default to "todo" status when created
+  - only the assigned developer can change the status of a task
+- implemented Task model with TDD approach:
+  - created task model tests for validations and associations
+  - implemented Task model with required validations and associations
+  - added status validation and default status functionality
+  - extended Ability class to include task-related permissions:
+    - project managers can create, update, and delete tasks for projects they manage
+    - project managers cannot update task status
+    - developers can view tasks in projects they're assigned to
+    - only assigned developers can update status of tasks assigned to them
