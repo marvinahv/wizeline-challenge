@@ -86,3 +86,7 @@
   - used CanCanCan load_and_authorize_resource for authorization
   - added nested routes for project tasks
   - implemented a custom route for task status updates
+- added project deletion authorization and cascading deletes:
+  - implemented ability rule to ensure only admin owners can delete their projects
+  - verified that projects delete their associated tasks when removed (using dependent: :destroy)
+  - added tests to verify both behaviors
