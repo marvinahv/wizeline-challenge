@@ -3,3 +3,6 @@
 - set ruby 3.2.7 as local version for the project
 - installed rails 8.0.2
 - created a new rails 8 API application with PostgreSQL and Minitest
+- configured git username and email
+- configured database connection to PostgreSQL
+- created development and test databases
