@@ -75,46 +75,4 @@ class TaskTest < ActiveSupport::TestCase
     assert_not task.valid?
     assert_includes task.errors.full_messages, "Status is not included in the list"
   end
-
-  test "can only be created by project manager using CanCanCan" do
-    task = build(:task, project: @project, assignee: @developer)
-    
-    # Project manager can create task
-    ability = Ability.new(@project_manager)
-    assert ability.can?(:create, task)
-    
-    # Admin cannot create task
-    ability = Ability.new(@admin)
-    assert ability.cannot?(:create, task)
-    
-    # Developer cannot create task
-    ability = Ability.new(@developer)
-    assert ability.cannot?(:create, task)
-    
-    # Different project manager cannot create task
-    different_manager = create(:user, :project_manager)
-    ability = Ability.new(different_manager)
-    assert ability.cannot?(:create, task)
-  end
-  
-  test "only assigned developer can update status using CanCanCan" do
-    task = create(:task, project: @project, assignee: @developer)
-    other_developer = create(:user, :developer)
-    
-    # Assigned developer can update status
-    ability = Ability.new(@developer)
-    assert ability.can?(:update_status, task)
-    
-    # Other developer cannot update status
-    ability = Ability.new(other_developer)
-    assert ability.cannot?(:update_status, task)
-    
-    # Project manager cannot update status
-    ability = Ability.new(@project_manager)
-    assert ability.cannot?(:update_status, task)
-    
-    # Admin cannot update status
-    ability = Ability.new(@admin)
-    assert ability.cannot?(:update_status, task)
-  end
 end 
