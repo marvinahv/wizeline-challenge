@@ -28,3 +28,7 @@
   - must contain at least one lowercase letter
   - must contain at least one number
   - must contain at least one special character
+- created API structure with versioning (v1)
+- implemented BaseController with authentication helpers
+- implemented AuthenticationController with login endpoint
+- all authentication controller tests passing
