@@ -8,8 +8,36 @@ module Api
       # GET /api/v1/projects/:project_id/tasks
       def index
         authorize! :read, @project
-        @tasks = @project.tasks
-        render json: @tasks
+        
+        # Project managers can see all tasks for projects they manage
+        # Developers can only see tasks assigned to them
+        # Admins can only see tasks for projects they own
+        # Other users see no tasks
+        @tasks = if current_user.role == 'admin'
+          if @project.owner_id == current_user.id
+            @project.tasks
+          else
+            # If admin doesn't own this project, return an empty collection
+            Task.none
+          end
+        elsif current_user.role == 'project_manager'
+          if @project.manager_id == current_user.id
+            @project.tasks
+          else
+            # If manager doesn't manage this project, return an empty collection
+            Task.none
+          end
+        elsif current_user.role == 'developer'
+          @project.tasks.where(assignee: current_user)
+        else
+          Task.none
+        end
+        
+        # Sort by creation date (newest first)
+        @tasks = @tasks.order(created_at: :desc)
+        
+        # Always return an array, even if empty
+        render json: @tasks.to_a
       end
       
       # POST /api/v1/projects/:project_id/tasks
