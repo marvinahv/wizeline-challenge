@@ -38,8 +38,18 @@
     - projects must have a project manager user assigned
     - only the admin who created a project can edit its name
     - only the admin who created a project can assign it to a different manager
+    - 
 - wrote Project model tests with validation and association tests using TDD approach
 - implemented Project model with:
   - validation to ensure only admin users can own projects
   - validation to ensure only project managers can manage projects
   - all Project model tests passing
+- refactored permission logic:
+  - removed direct permission methods from Project model
+  - implemented authorization using CanCanCan gem
+  - updated Project model tests to verify permissions through CanCanCan's ability system
+  - implemented Ability class with role-based permissions:
+    - everyone can read projects
+    - admin users can create projects
+    - admin users can update, change name, and change manager only for projects they own
+    - project managers can manage tasks for projects they manage
