@@ -33,8 +33,8 @@ module Api
           Task.none
         end
         
-        # Sort by creation date (newest first)
-        @tasks = @tasks.order(created_at: :desc)
+        # Sort by creation date (oldest first)
+        @tasks = @tasks.order(created_at: :asc)
         
         # Always return an array, even if empty
         render json: @tasks.to_a

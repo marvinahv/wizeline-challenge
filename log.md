@@ -109,6 +109,6 @@
   - project managers see only projects they manage, sorted by creation date (newest first)
   - developers see only projects where they have assigned tasks, sorted by creation date (newest first)
 - implemented role-based task listing with default sorting:
-  - project managers can see all tasks for projects they manage, sorted by creation date (newest first)
-  - developers can only see tasks assigned to them, sorted by creation date (newest first)
+  - project managers can see all tasks for projects they manage, sorted by creation date (oldest first)
+  - developers can only see tasks assigned to them, sorted by creation date (oldest first)
   - security enhancements ensure other managers cannot see tasks for projects they don't manage
