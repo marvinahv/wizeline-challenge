@@ -6,3 +6,12 @@
 - configured git username and email
 - configured database connection to PostgreSQL
 - created development and test databases
+- given the requirements don't specify signup functionality, we are only focusing on the authentication part. but want to aknowledge futher functionality could be. for this implementation we will assume that they have already signed up and/or joined a project
+    - admin can signup with name, email, and password
+    - admin can confirm account via magic link on email
+    - admin can invite manager to project with name and email
+    - admin can invite developer to project with name and email
+    - manager can join project via magic link on email
+    - manager can be automatically signed up via magic link
+    - developer can join project via magic link on email
+    - developer can be automatically signed up via magic link
