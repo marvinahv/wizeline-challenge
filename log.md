@@ -22,3 +22,9 @@
 - implemented User model with validations for name, email, password, and role
 - implemented JWT token generation for authentication
 - all User model tests passing
+- enhanced password security with stronger requirements:
+  - minimum 8 characters
+  - must contain at least one uppercase letter
+  - must contain at least one lowercase letter
+  - must contain at least one number
+  - must contain at least one special character

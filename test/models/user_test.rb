@@ -37,10 +37,32 @@ class UserTest < ActiveSupport::TestCase
     assert_includes user.errors.full_messages, "Password can't be blank"
   end
 
-  test "password must be at least 6 characters" do
-    user = build(:user, password: "12345", password_confirmation: "12345")
+  test "password must be at least 8 characters" do
+    user = build(:user, password: "Pass1!", password_confirmation: "Pass1!")
     assert_not user.valid?
-    assert_includes user.errors.full_messages, "Password is too short (minimum is 6 characters)"
+    assert_includes user.errors.full_messages, "Password is too short (minimum is 8 characters)"
+  end
+  
+  test "password must include uppercase, lowercase, number and symbol" do
+    # Missing uppercase
+    user = build(:user, password: "password1!", password_confirmation: "password1!")
+    assert_not user.valid?
+    
+    # Missing lowercase
+    user = build(:user, password: "PASSWORD1!", password_confirmation: "PASSWORD1!")
+    assert_not user.valid?
+    
+    # Missing number
+    user = build(:user, password: "Password!", password_confirmation: "Password!")
+    assert_not user.valid?
+    
+    # Missing symbol
+    user = build(:user, password: "Password1", password_confirmation: "Password1")
+    assert_not user.valid?
+    
+    # Valid password
+    user = build(:user, password: "Password1!", password_confirmation: "Password1!")
+    assert user.valid?
   end
 
   test "requires valid role" do
@@ -58,14 +80,14 @@ class UserTest < ActiveSupport::TestCase
 
   # Authentication tests
   test "authenticates with valid credentials" do
-    user = create(:user, password: "correct_password", password_confirmation: "correct_password")
-    authenticated_user = User.authenticate(user.email, "correct_password")
+    user = create(:user, password: "StrongP@ss123", password_confirmation: "StrongP@ss123")
+    authenticated_user = User.authenticate(user.email, "StrongP@ss123")
     assert_equal user, authenticated_user
   end
   
   test "does not authenticate with invalid credentials" do
-    user = create(:user, password: "correct_password", password_confirmation: "correct_password")
-    authenticated_user = User.authenticate(user.email, "wrong_password")
+    user = create(:user, password: "StrongP@ss123", password_confirmation: "StrongP@ss123")
+    authenticated_user = User.authenticate(user.email, "WrongP@ss123")
     assert_nil authenticated_user
   end
   
