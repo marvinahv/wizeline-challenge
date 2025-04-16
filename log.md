@@ -91,3 +91,16 @@
   - verified that projects delete their associated tasks when removed (using dependent: :destroy)
   - added tests to verify both behaviors
 - added functionality so only assigned manager can delete project tasks
+- confirmed all required API endpoints are implemented:
+  - Projects CRUD operations:
+    - Create: POST /api/v1/projects
+    - Read: GET /api/v1/projects and GET /api/v1/projects/:id
+    - Update: PUT /api/v1/projects/:id
+    - Delete: DELETE /api/v1/projects/:id
+  - Tasks CRUD operations:
+    - Create: POST /api/v1/projects/:project_id/tasks
+    - Read: GET /api/v1/projects/:project_id/tasks and GET /api/v1/tasks/:id
+    - Update: PUT /api/v1/tasks/:id
+    - Delete: DELETE /api/v1/tasks/:id
+  - Task status updates:
+    - Update status: PUT /api/v1/tasks/:id/status
