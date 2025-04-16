@@ -16,3 +16,6 @@
     - developer can join project via magic link on email
     - developer can be automatically signed up via magic link
 - we will also aknowledge there could be more functionality for asigning roles to users, but for the scope of thir project that functionality won't be included either
+- added bcrypt and JWT gems for authentication
+- added FactoryBot for test factories
+- wrote User model tests with validation and authentication tests using TDD approach
