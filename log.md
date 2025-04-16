@@ -104,3 +104,7 @@
     - Delete: DELETE /api/v1/tasks/:id
   - Task status updates:
     - Update status: PUT /api/v1/tasks/:id/status
+- implemented user-specific project views with default sorting:
+  - admins see only their created projects, sorted by creation date (newest first)
+  - project managers see only projects they manage, sorted by creation date (newest first)
+  - developers see only projects where they have assigned tasks, sorted by creation date (newest first)

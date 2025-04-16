@@ -6,8 +6,23 @@ module Api
       
       # GET /api/v1/projects
       def index
-        @projects = Project.all
         authorize! :read, Project
+        
+        # Filter projects based on user role
+        if user_is_admin?
+          # Admin sees only projects they own
+          @projects = Project.where(owner: current_user)
+        elsif user_is_project_manager?
+          # Project manager sees only projects they manage
+          @projects = Project.where(manager: current_user)
+        else
+          # Developer sees projects where they have assigned tasks
+          @projects = Project.joins(:tasks).where(tasks: { assignee_id: current_user.id }).distinct
+        end
+        
+        # Sort by creation date (newest first)
+        @projects = @projects.order(created_at: :desc)
+        
         render json: @projects
       end
       
@@ -57,6 +72,14 @@ module Api
       
       def project_params
         params.require(:project).permit(:name, :manager_id)
+      end
+      
+      def user_is_admin?
+        current_user.role == 'admin'
+      end
+      
+      def user_is_project_manager?
+        current_user.role == 'project_manager'
       end
       
       # Handle CanCan authorization errors

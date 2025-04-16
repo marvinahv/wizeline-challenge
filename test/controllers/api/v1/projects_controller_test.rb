@@ -202,6 +202,114 @@ class Api::V1::ProjectsControllerTest < ActionDispatch::IntegrationTest
     end
   end
   
+  test "admin can see all their created projects sorted by creation date, newest first" do
+    # Clear existing projects for a clean test
+    Project.delete_all
+    
+    # Create projects with specific creation dates
+    oldest = create(:project, name: "Oldest Project", owner: @admin, manager: @project_manager, created_at: 3.days.ago)
+    middle = create(:project, name: "Middle Project", owner: @admin, manager: @project_manager, created_at: 2.days.ago)
+    newest = create(:project, name: "Newest Project", owner: @admin, manager: @project_manager, created_at: 1.day.ago)
+    
+    # Create a project owned by another admin (should not appear in results)
+    other_admin_project = create(:project, name: "Other Admin Project", owner: @other_admin, manager: @project_manager)
+    
+    # Test that admin sees their projects sorted by creation date (newest first)
+    get api_v1_projects_url,
+        headers: { 'Authorization' => "Bearer #{@admin_token}" }
+    
+    assert_response :success
+    
+    # Verify only the admin's projects are returned
+    json_response = JSON.parse(response.body)
+    assert_equal 3, json_response.length
+    
+    # Verify they are sorted by creation date (newest first)
+    project_ids = json_response.map { |p| p['id'] }
+    assert_equal [newest.id, middle.id, oldest.id], project_ids
+    
+    # Verify no other admin's projects are included
+    assert_not_includes project_ids, other_admin_project.id
+  end
+  
+  test "project manager can see all their managed projects sorted by creation date, newest first" do
+    # Clear existing projects for a clean test
+    Project.delete_all
+    
+    # Create an additional project manager
+    other_manager = create(:user, :project_manager)
+    other_manager_token = generate_token_for(other_manager)
+    
+    # Create projects managed by our project manager with specific creation dates
+    oldest = create(:project, name: "Oldest PM Project", owner: @admin, manager: @project_manager, created_at: 3.days.ago)
+    middle = create(:project, name: "Middle PM Project", owner: @admin, manager: @project_manager, created_at: 2.days.ago)
+    newest = create(:project, name: "Newest PM Project", owner: @admin, manager: @project_manager, created_at: 1.day.ago)
+    
+    # Create a project managed by another project manager (should not appear in results)
+    other_manager_project = create(:project, name: "Other Manager Project", owner: @admin, manager: other_manager)
+    
+    # Test that project manager sees only their managed projects sorted by creation date (newest first)
+    get api_v1_projects_url,
+        headers: { 'Authorization' => "Bearer #{@project_manager_token}" }
+    
+    assert_response :success
+    
+    # Verify only the projects managed by this project manager are returned
+    json_response = JSON.parse(response.body)
+    assert_equal 3, json_response.length
+    
+    # Verify they are sorted by creation date (newest first)
+    project_ids = json_response.map { |p| p['id'] }
+    assert_equal [newest.id, middle.id, oldest.id], project_ids
+    
+    # Verify no projects managed by other project managers are included
+    assert_not_includes project_ids, other_manager_project.id
+  end
+  
+  test "developer can see only projects where they have assigned tasks, sorted by creation date, newest first" do
+    # Clear existing projects for a clean test
+    Project.delete_all
+    
+    # Create an additional developer
+    other_developer = create(:user, :developer)
+    
+    # Create projects with tasks assigned to our developer
+    project1 = create(:project, name: "Project 1", owner: @admin, manager: @project_manager, created_at: 3.days.ago)
+    project2 = create(:project, name: "Project 2", owner: @admin, manager: @project_manager, created_at: 2.days.ago)
+    project3 = create(:project, name: "Project 3", owner: @admin, manager: @project_manager, created_at: 1.day.ago)
+    
+    # Create a project with tasks assigned to another developer (should not appear in results)
+    project4 = create(:project, name: "Project 4", owner: @admin, manager: @project_manager)
+    
+    # Assign tasks to our developer in projects 1 and 3 (but not 2)
+    create(:task, project: project1, assignee: @developer)
+    create(:task, project: project3, assignee: @developer)
+    
+    # Assign a task to the other developer in project 4
+    create(:task, project: project4, assignee: other_developer)
+    
+    # Also assign a task to the other developer in project 1 (our developer should still see this project)
+    create(:task, project: project1, assignee: other_developer)
+    
+    # Test that developer sees only projects where they have assigned tasks
+    get api_v1_projects_url,
+        headers: { 'Authorization' => "Bearer #{@developer_token}" }
+    
+    assert_response :success
+    
+    # Verify only the projects with tasks assigned to this developer are returned
+    json_response = JSON.parse(response.body)
+    assert_equal 2, json_response.length
+    
+    # Verify they are sorted by creation date (newest first)
+    project_ids = json_response.map { |p| p['id'] }
+    assert_equal [project3.id, project1.id], project_ids
+    
+    # Verify projects without tasks assigned to this developer are not included
+    assert_not_includes project_ids, project2.id
+    assert_not_includes project_ids, project4.id
+  end
+  
   private
   
   def generate_token_for(user)
