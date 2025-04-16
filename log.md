@@ -1,0 +1,5 @@
+- installed rbenv to manage ruby versions
+- installed ruby 3.2.7 using rbenv
+- set ruby 3.2.7 as local version for the project
+- installed rails 8.0.2
+- created a new rails 8 API application with PostgreSQL and Minitest
