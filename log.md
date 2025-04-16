@@ -70,3 +70,10 @@
     - project managers cannot update task status
     - developers can view tasks in projects they're assigned to
     - only assigned developers can update status of tasks assigned to them
+- implemented controller tests for proper separation of concerns:
+  - separated model tests from authorization tests
+  - created focused controller tests for projects that verify:
+    - only admins can create new projects
+    - only the admin that created a project can update its name
+    - only the admin that created a project can reassign its manager
+  
