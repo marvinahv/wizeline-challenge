@@ -32,3 +32,14 @@
 - implemented BaseController with authentication helpers
 - implemented AuthenticationController with login endpoint
 - all authentication controller tests passing
+- given these features are not explicitely defined, we are seeting these rules so we can fulfill the requirements in way that makes sense but with a scope limit given the time constraints:
+    - projects can only be created by an admin user
+    - projects must have a unique name
+    - projects must have a project manager user assigned
+    - only the admin who created a project can edit its name
+    - only the admin who created a project can assign it to a different manager
+- wrote Project model tests with validation and association tests using TDD approach
+- implemented Project model with:
+  - validation to ensure only admin users can own projects
+  - validation to ensure only project managers can manage projects
+  - all Project model tests passing
