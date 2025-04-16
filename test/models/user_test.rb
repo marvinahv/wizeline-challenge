@@ -58,13 +58,13 @@ class UserTest < ActiveSupport::TestCase
 
   # Authentication tests
   test "authenticates with valid credentials" do
-    user = create(:user, password: "correct_password")
+    user = create(:user, password: "correct_password", password_confirmation: "correct_password")
     authenticated_user = User.authenticate(user.email, "correct_password")
     assert_equal user, authenticated_user
   end
   
   test "does not authenticate with invalid credentials" do
-    user = create(:user, password: "correct_password")
+    user = create(:user, password: "correct_password", password_confirmation: "correct_password")
     authenticated_user = User.authenticate(user.email, "wrong_password")
     assert_nil authenticated_user
   end

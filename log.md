@@ -19,3 +19,6 @@
 - added bcrypt and JWT gems for authentication
 - added FactoryBot for test factories
 - wrote User model tests with validation and authentication tests using TDD approach
+- implemented User model with validations for name, email, password, and role
+- implemented JWT token generation for authentication
+- all User model tests passing
