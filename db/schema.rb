@@ -53,6 +53,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_24_175000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "github_repo"
+    t.integer "tasks_count", default: 0, null: false
     t.index ["manager_id"], name: "index_projects_on_manager_id"
     t.index ["name"], name: "index_projects_on_name", unique: true
     t.index ["owner_id"], name: "index_projects_on_owner_id"

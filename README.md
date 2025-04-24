@@ -54,8 +54,6 @@ For a detailed development log, see `log.md`.
 
 ## Features
 
-Based on our controller tests and code analysis, the application provides the following features:
-
 ### Projects
 
 - Admins can create new projects
