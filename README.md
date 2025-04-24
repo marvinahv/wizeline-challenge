@@ -14,43 +14,9 @@ A Rails API for managing projects and tasks with role-based access control and G
 - **External APIs**: GitHub API integration
 - **Background Processing**: Delayed Job
 
-## Project Progress
+## LOG
 
-The project has been developed using Test-Driven Development (TDD) methodology, with the following key milestones:
-
-1. **Setup & Authentication**
-   - Rails 8 API application with PostgreSQL
-   - User model with secure authentication
-   - JWT token generation for API access
-   - Enhanced password security requirements
-
-2. **Authorization & Project Management**
-   - Role-based permissions using CanCanCan
-   - Project creation and management for admins
-   - Project ownership and access restrictions
-
-3. **Task Management**
-   - Task CRUD operations
-   - Role-specific task permissions
-   - Task status management
-
-4. **API Enhancements**
-   - User-specific project views with sorting
-   - Role-based task listing with sorting
-
-5. **GitHub Integration**
-   - GitHub repository linking to projects
-   - Secure token management with encryption
-   - Background syncing of repository data
-   - Project statistics with GitHub data
-
-6. **Performance Optimizations**
-   - N+1 query prevention with eager loading
-   - Counter caches for efficient counting
-   - Query optimizations with GROUP BY
-   - Efficient association loading
-
-For a detailed development log, see `log.md`.
+The project has been developed using Test-Driven Development (TDD) methodology. Focused on solid functionality first and optimizations later. For a detailed development log, see `log.md`.
 
 ## Features
 
@@ -183,19 +149,85 @@ The application follows a standard Rails architecture with some specific design 
 To run the test suite:
 
 ```bash
-# Run all tests
-rails test
-
-# If you encounter segmentation faults, use:
+# Run all tests (segmentation faults, use:)
 PARALLEL_WORKERS=1 rails test
+```
 
-# Run specific test files
-rails test test/models/user_test.rb
-rails test test/controllers/api/v1/projects_controller_test.rb
-rails test test/controllers/api/v1/tasks_controller_test.rb
+You should see:
 
-# Run specific test
-rails test test/controllers/api/v1/projects_controller_test.rb:18
+```bash
+# Running:
+
+SyncGithubRepositoryJobTest#test_job_handles_non-existent_project_gracefully = 0.06 s = .
+SyncGithubRepositoryJobTest#test_job_syncs_GitHub_data_for_a_project = 0.06 s = .
+SyncGithubRepositoryJobTest#test_job_handles_missing_GitHub_token_gracefully = 0.03 s = .
+SyncGithubRepositoryJobTest#test_job_enqueues_with_project_ID = 0.01 s = .
+SyncGithubRepositoryJobTest#test_job_schedules_updates_for_all_outdated_repositories = 0.03 s = .
+Api::V1::ProjectsControllerTest#test_only_the_admin_that_created_a_project_can_reassign_its_manager = 0.11 s = .
+Api::V1::ProjectsControllerTest#test_only_the_admin_that_created_a_project_can_update_its_name = 0.05 s = .
+Api::V1::ProjectsControllerTest#test_admin_can_see_all_their_created_projects_sorted_by_creation_date,_newest_first = 0.03 s = .
+Api::V1::ProjectsControllerTest#test_only_admins_can_create_new_projects = 0.04 s = .
+Api::V1::ProjectsControllerTest#test_only_admin_who_owns_the_project_can_fetch_project_statistics = 0.08 s = .
+Api::V1::ProjectsControllerTest#test_admin_can_access_stats_for_project_with_GitHub_repo_linked = 0.05 s = .
+Api::V1::ProjectsControllerTest#test_developer_can_see_only_projects_where_they_have_assigned_tasks,_sorted_by_creation_date,_newest_first = 0.05 s = .
+Api::V1::ProjectsControllerTest#test_when_a_project_is_deleted,_all_its_tasks_are_deleted_as_well = 0.04 s = .
+Api::V1::ProjectsControllerTest#test_project_manager_can_see_all_their_managed_projects_sorted_by_creation_date,_newest_first = 0.05 s = .
+Api::V1::ProjectsControllerTest#test_only_the_admin_that_created_a_project_can_delete_it = 0.05 s = .
+Api::V1::AuthenticationControllerTest#test_should_not_authenticate_with_missing_credentials = 0.01 s = .
+Api::V1::AuthenticationControllerTest#test_should_authenticate_user_with_valid_credentials = 0.01 s = .
+Api::V1::AuthenticationControllerTest#test_should_not_authenticate_user_with_invalid_credentials = 0.01 s = .
+ProjectTest#test_requires_name = 0.01 s = .
+ProjectTest#test_requires_owner_to_be_admin = 0.02 s = .
+ProjectTest#test_github_repo_can_be_nil = 0.01 s = .
+ProjectTest#test_requires_a_project_manager = 0.01 s = .
+ProjectTest#test_belongs_to_an_admin_owner = 0.01 s = .
+ProjectTest#test_github_repo_can_be_blank = 0.01 s = .
+ProjectTest#test_name_must_be_unique = 0.01 s = .
+ProjectTest#test_belongs_to_a_project_manager = 0.01 s = .
+ProjectTest#test_can_have_a_github_repository_associated = 0.01 s = .
+ProjectTest#test_valid_project = 0.01 s = .
+ProjectTest#test_requires_manager_to_be_a_project_manager_role = 0.02 s = .
+ProjectTest#test_github_repo_format_is_valid = 0.01 s = .
+GithubServiceTest#test_fetch_repository_handles_API_errors_gracefully = 0.01 s = .
+GithubServiceTest#test_fetch_repository_returns_repository_data = 0.01 s = .
+Api::V1::TasksControllerTest#test_only_the_assigned_developer_can_update_a_task's_status = 0.06 s = .
+Api::V1::TasksControllerTest#test_only_the_manager_assigned_to_a_project_can_create_tasks = 0.05 s = .
+Api::V1::TasksControllerTest#test_developer_can_only_see_tasks_assigned_to_them,_sorted_by_creation_date_oldest_first = 0.05 s = .
+Api::V1::TasksControllerTest#test_admin_can_see_all_tasks_for_projects_they_own,_sorted_by_creation_date_oldest_first = 0.06 s = .
+Api::V1::TasksControllerTest#test_only_the_manager_assigned_to_a_project_can_change_its_assignee_developer = 0.06 s = .
+Api::V1::TasksControllerTest#test_project_manager_can_see_all_tasks_they_have_created_for_a_given_project,_sorted_by_creation_date_oldest_first = 0.06 s = .
+Api::V1::TasksControllerTest#test_only_the_manager_assigned_to_a_project_can_edit_tasks = 0.06 s = .
+Api::V1::TasksControllerTest#test_only_the_manager_assigned_to_a_project_can_delete_tasks = 0.05 s = .
+TaskTest#test_default_status_is_todo = 0.02 s = .
+TaskTest#test_requires_a_project = 0.02 s = .
+TaskTest#test_belongs_to_a_project = 0.03 s = .
+TaskTest#test_assignee_must_be_a_developer = 0.02 s = .
+TaskTest#test_requires_a_description = 0.01 s = .
+TaskTest#test_valid_task = 0.02 s = .
+TaskTest#test_status_must_be_valid = 0.02 s = .
+TaskTest#test_requires_an_assigned_developer = 0.02 s = .
+UserTest#test_github_connected?_returns_false_when_github_token_is_nil = 0.01 s = .
+UserTest#test_requires_email = 0.00 s = .
+UserTest#test_accepts_valid_roles = 0.01 s = .
+UserTest#test_requires_unique_email = 0.01 s = .
+UserTest#test_password_must_be_at_least_8_characters = 0.00 s = .
+UserTest#test_github_token_is_encrypted = 0.01 s = .
+UserTest#test_requires_valid_email_format = 0.00 s = .
+UserTest#test_generates_JWT_token = 0.01 s = .
+UserTest#test_authenticates_with_valid_credentials = 0.01 s = .
+UserTest#test_does_not_authenticate_with_invalid_credentials = 0.01 s = .
+UserTest#test_github_connected?_returns_false_when_github_token_is_blank = 0.00 s = .
+UserTest#test_requires_valid_role = 0.00 s = .
+UserTest#test_creates_users_with_different_roles = 0.01 s = .
+UserTest#test_valid_user = 0.00 s = .
+UserTest#test_github_connected?_returns_true_when_github_token_is_present = 0.00 s = .
+UserTest#test_password_must_include_uppercase,_lowercase,_number_and_symbol = 0.01 s = .
+UserTest#test_requires_name = 0.00 s = .
+UserTest#test_requires_password = 0.00 s = .
+UserTest#test_generates_different_tokens_for_different_users = 0.01 s = .
+
+Finished in 1.708615s, 39.2130 runs/s, 172.6545 assertions/s.
+67 runs, 295 assertions, 0 failures, 0 errors, 0 skips
 ```
 
 ## Getting Started
