@@ -138,3 +138,4 @@
       - token scope limitation to minimum required permissions
       - audit logging for all GitHub API access
       - regular security reviews of GitHub integration code
+- I decided to use VCR for testing our Github service since I like it better than just mocking the API responses. We get real data. And I've worked with it in the past.
