@@ -14,6 +14,29 @@ class Project < ApplicationRecord
   }
   validate :owner_must_be_admin
   validate :manager_must_be_project_manager
+  
+  # Tasks count method using cache when available
+  def tasks_count
+    read_attribute(:tasks_count) || tasks.count
+  end
+  
+  # Task status counts using a single query
+  def task_status_counts
+    tasks.group(:status).count
+  end
+  
+  # Methods to efficiently count tasks by status
+  def todo_tasks_count
+    task_status_counts['todo'] || 0
+  end
+  
+  def in_progress_tasks_count
+    task_status_counts['in_progress'] || 0
+  end
+  
+  def done_tasks_count
+    task_status_counts['done'] || 0
+  end
 
   private
 

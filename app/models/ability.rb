@@ -34,22 +34,12 @@ class Ability
       
       # Project managers can manage tasks within their projects
       if user.role == 'project_manager'
+        # Use simple conditions instead of blocks when possible to prevent N+1 queries
         can :manage_tasks, Project, manager_id: user.id
         
-        # Project managers can create tasks for projects they manage
-        can :create, Task do |task|
-          task.project.manager_id == user.id
-        end
-        
-        # Project managers can update tasks for projects they manage
-        can :update, Task do |task|
-          task.project.manager_id == user.id
-        end
-        
-        # Project managers can delete tasks for projects they manage
-        can :destroy, Task do |task|
-          task.project.manager_id == user.id
-        end
+        # For task operations that depend on the project's manager, use a hash condition
+        # to let CanCanCan optimize the query
+        can [:create, :update, :destroy], Task, project: { manager_id: user.id }
         
         # But project managers cannot update the status of tasks
         cannot :update_status, Task
@@ -57,10 +47,9 @@ class Ability
       
       # Developers can view and update their assigned tasks
       if user.role == 'developer'
-        # Developers can view all tasks in projects they're assigned to
-        can :read, Task do |task|
-          task.project.tasks.exists?(assignee_id: user.id)
-        end
+        # Use a simpler condition to avoid a block that might cause N+1 queries
+        # Can view tasks in their projects
+        can :read, Task, project: { tasks: { assignee_id: user.id } }
         
         # Developers can update status of tasks assigned to them
         can :update_status, Task, assignee_id: user.id

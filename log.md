@@ -202,3 +202,16 @@
   - simplified implementation by focusing only on essential GitHub data
   - ensured all tests pass with proper authorization
   - removed commit data for time's sake; since stats data is not specified, but with more time, we would probably add commit data too
+- implemented N+1 query detection and optimization:
+  - added a debug log in BaseController to identify potential N+1 queries in development
+  - optimized the ProjectsController with eager loading using includes(:manager, :owner, :github_repository_datum)
+  - enhanced the show action with deep eager loading of nested associations
+  - refactored the stats action to use a single database query for task counting
+  - improved the TasksController with eager loading of associated records
+  - added counter_cache column for tasks to Project model with migration
+  - optimized the SyncGithubRepositoryJob with eager loading to prevent N+1 issues
+  - refactored the User.authenticate method to include eager loading of common associations
+  - replaced block-based CanCan authorization with optimized hash conditions
+  - implemented efficient scopes in the User model for common queries
+  - added helper methods in Project model for efficient task counting
+  - documented all N+1 optimizations and updated the challenge report

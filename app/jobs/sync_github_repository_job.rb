@@ -10,7 +10,8 @@ class SyncGithubRepositoryJob < ApplicationJob
   discard_on Octokit::NotFound
   
   def perform(project_id)
-    project = Project.find_by(id: project_id)
+    # Eager load owner to prevent N+1 query when checking github_connected?
+    project = Project.includes(:owner, :github_repository_datum).find_by(id: project_id)
     return unless project && project.github_repo.present?
     
     # Find owner of the project for GitHub token
@@ -39,7 +40,8 @@ class SyncGithubRepositoryJob < ApplicationJob
   
   # Class method to schedule sync jobs for all projects with GitHub repositories
   def self.schedule_all
-    projects_with_github = Project.where.not(github_repo: [nil, ""])
+    # Preload all projects with GitHub repos in a single query
+    projects_with_github = Project.includes(:owner).where.not(github_repo: [nil, ""])
     projects_with_github.find_each do |project|
       SyncGithubRepositoryJob.perform_later(project.id)
     end
@@ -48,7 +50,9 @@ class SyncGithubRepositoryJob < ApplicationJob
   # Class method to schedule sync jobs for projects needing updates
   def self.schedule_updates
     # Get projects whose GitHub data is older than 24 hours or doesn't exist yet
-    projects_to_update = Project.left_joins(:github_repository_datum)
+    # Use a single query with joins to get all needed data
+    projects_to_update = Project.includes(:owner)
+                               .left_joins(:github_repository_datum)
                                .where.not(github_repo: [nil, ""])
                                .where("github_repository_data.id IS NULL OR github_repository_data.last_synced_at < ?", 24.hours.ago)
     

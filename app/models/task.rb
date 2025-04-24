@@ -3,7 +3,7 @@ class Task < ApplicationRecord
   STATUSES = %w[todo in_progress done].freeze
   
   # Associations
-  belongs_to :project
+  belongs_to :project, counter_cache: true
   belongs_to :assignee, class_name: 'User'
   
   # Validations
@@ -13,6 +13,11 @@ class Task < ApplicationRecord
   
   # Default values
   after_initialize :set_default_status, if: :new_record?
+  
+  # Scopes for efficient querying
+  scope :todo, -> { where(status: 'todo') }
+  scope :in_progress, -> { where(status: 'in_progress') }
+  scope :done, -> { where(status: 'done') }
   
   private
   

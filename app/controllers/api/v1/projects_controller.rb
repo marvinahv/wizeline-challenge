@@ -20,8 +20,8 @@ module Api
           @projects = Project.joins(:tasks).where(tasks: { assignee_id: current_user.id }).distinct
         end
         
-        # Sort by creation date (newest first)
-        @projects = @projects.order(created_at: :desc)
+        # Sort by creation date (newest first) and eager load associations to prevent N+1 queries
+        @projects = @projects.includes(:manager, :owner, :github_repository_datum).order(created_at: :desc)
         
         render json: @projects
       end
@@ -47,6 +47,8 @@ module Api
       # GET /api/v1/projects/:id
       def show
         authorize! :read, @project
+        # Eager load associations to prevent N+1 queries
+        @project = Project.includes(:manager, :owner, :github_repository_datum, tasks: :assignee).find(@project.id)
         render json: @project
       end
       
@@ -83,16 +85,19 @@ module Api
       def stats
         authorize! :stats, @project
         
+        # Use task_status_counts method to get all counts in a single query
+        task_counts = @project.task_status_counts
+        
         # Collect project statistics
         stats = {
           project: {
             id: @project.id,
             name: @project.name,
             tasks: {
-              total: @project.tasks.count,
-              todo: @project.tasks.where(status: 'todo').count,
-              in_progress: @project.tasks.where(status: 'in_progress').count,
-              done: @project.tasks.where(status: 'done').count
+              total: task_counts.values.sum,
+              todo: task_counts['todo'] || 0,
+              in_progress: task_counts['in_progress'] || 0,
+              done: task_counts['done'] || 0
             },
             created_at: @project.created_at,
             updated_at: @project.updated_at
@@ -161,7 +166,8 @@ module Api
       private
       
       def set_project
-        @project = Project.find(params[:id])
+        # Eager load associations to prevent N+1 queries
+        @project = Project.includes(:manager, :owner, :github_repository_datum).find(params[:id])
       end
       
       def project_params

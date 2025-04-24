@@ -33,8 +33,8 @@ module Api
           Task.none
         end
         
-        # Sort by creation date (oldest first)
-        @tasks = @tasks.order(created_at: :asc)
+        # Sort by creation date (oldest first) and eager load associations to prevent N+1 queries
+        @tasks = @tasks.includes(:assignee, :project).order(created_at: :asc)
         
         # Always return an array, even if empty
         render json: @tasks.to_a
@@ -55,6 +55,8 @@ module Api
       # GET /api/v1/tasks/:id
       def show
         authorize! :read, @task
+        # Eager load associations to prevent N+1 queries
+        @task = Task.includes(:assignee, project: [:manager, :owner]).find(@task.id)
         render json: @task
       end
       
@@ -91,7 +93,7 @@ module Api
       private
       
       def set_project
-        @project = Project.find(params[:project_id])
+        @project = Project.includes(:tasks).find(params[:project_id])
       end
       
       def set_task

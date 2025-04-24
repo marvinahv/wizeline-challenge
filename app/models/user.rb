@@ -5,6 +5,11 @@ class User < ApplicationRecord
   # Encrypt GitHub token
   encrypts :github_token
 
+  # Associations
+  has_many :owned_projects, class_name: 'Project', foreign_key: 'owner_id'
+  has_many :managed_projects, class_name: 'Project', foreign_key: 'manager_id'
+  has_many :assigned_tasks, class_name: 'Task', foreign_key: 'assignee_id'
+
   # Custom password validation
   PASSWORD_REQUIREMENTS = /\A
     (?=.*\d)           # Must contain at least one number
@@ -24,9 +29,17 @@ class User < ApplicationRecord
                      allow_nil: true
   validates :role, presence: true, inclusion: { in: %w[admin project_manager developer] }
 
-  # Class methods for authentication
+  # Scopes for efficient querying
+  scope :with_projects, -> { includes(:owned_projects, :managed_projects) }
+  scope :admins, -> { where(role: 'admin') }
+  scope :project_managers, -> { where(role: 'project_manager') }
+  scope :developers, -> { where(role: 'developer') }
+  scope :with_github_connected, -> { where.not(github_token: nil) }
+
+  # Class methods for authentication with eager loading to prevent N+1 queries later
   def self.authenticate(email, password)
-    user = find_by(email: email)
+    # Eager load common associations that will likely be used after authentication
+    user = includes(:owned_projects, :managed_projects).find_by(email: email)
     return nil unless user
     user.authenticate(password) ? user : nil
   end
@@ -46,6 +59,21 @@ class User < ApplicationRecord
       Rails.application.credentials.secret_key_base,
       'HS256'
     )
+  end
+  
+  # Find user projects with eager loading to prevent N+1 queries
+  def related_projects
+    case role
+    when 'admin'
+      owned_projects.includes(:manager, :tasks)
+    when 'project_manager'
+      managed_projects.includes(:owner, :tasks)
+    when 'developer'
+      Project.joins(:tasks).where(tasks: { assignee_id: id })
+             .distinct.includes(:owner, :manager, :tasks)
+    else
+      Project.none
+    end
   end
   
   # Check if user has connected GitHub account
