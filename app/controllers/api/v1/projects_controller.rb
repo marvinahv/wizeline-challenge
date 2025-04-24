@@ -33,6 +33,11 @@ module Api
         authorize! :create, @project
         
         if @project.save
+          # Schedule GitHub repo sync if a repo is provided
+          if @project.github_repo.present? && current_user.github_connected?
+            SyncGithubRepositoryJob.perform_later(@project.id)
+          end
+          
           render json: @project, status: :created
         else
           render json: { errors: @project.errors }, status: :unprocessable_entity
@@ -49,7 +54,17 @@ module Api
       def update
         authorize! :update, @project
         
+        # Store the old GitHub repo for comparison
+        old_github_repo = @project.github_repo
+        
         if @project.update(project_params)
+          # If GitHub repo has changed, schedule a sync job
+          if @project.github_repo.present? && 
+             @project.github_repo != old_github_repo && 
+             current_user.github_connected?
+            SyncGithubRepositoryJob.perform_later(@project.id)
+          end
+          
           render json: @project
         else
           render json: { errors: @project.errors }, status: :unprocessable_entity
@@ -85,28 +100,58 @@ module Api
           github: nil
         }
         
-        # Add GitHub data if repository is linked and user has a GitHub token
-        if @project.github_repo.present? && current_user.github_connected?
-          github_service = GithubService.new(current_user.github_token)
+        # Add GitHub data if repository is linked
+        if @project.github_repo.present?
+          # Try to get cached GitHub data first
+          repo_data = @project.github_repository_datum
           
-          # Fetch repository data
-          repository = github_service.fetch_repository(@project.github_repo)
-          
-          if repository
-            # Add GitHub data to response
+          # If data exists and is recent (less than 24 hours old)
+          if repo_data && repo_data.last_synced_at > 24.hours.ago
+            # Use cached data
             stats[:github] = {
-              name: repository.name,
-              full_name: repository.full_name,
-              description: repository.description,
-              url: repository.html_url,
+              name: repo_data.name,
+              full_name: repo_data.full_name,
+              description: repo_data.description,
+              url: repo_data.url,
               stats: {
-                stars: repository.stargazers_count,
-                forks: repository.forks_count,
-                open_issues: repository.open_issues_count
+                stars: repo_data.stargazers_count,
+                forks: repo_data.forks_count,
+                open_issues: repo_data.open_issues_count
               },
-              created_at: repository.created_at,
-              updated_at: repository.updated_at
+              last_synced_at: repo_data.last_synced_at,
+              created_at: repo_data.created_at,
+              updated_at: repo_data.updated_at
             }
+          elsif current_user.github_connected?
+            # Schedule a background job to update the data for next time
+            SyncGithubRepositoryJob.perform_later(@project.id)
+            
+            # For immediate response, fetch from API if user has GitHub token
+            github_service = GithubService.new(current_user.github_token)
+            repository = github_service.fetch_repository(@project.github_repo)
+            
+            if repository
+              stats[:github] = {
+                name: repository.name,
+                full_name: repository.full_name,
+                description: repository.description,
+                url: repository.html_url,
+                stats: {
+                  stars: repository.stargazers_count,
+                  forks: repository.forks_count,
+                  open_issues: repository.open_issues_count
+                },
+                created_at: repository.created_at,
+                updated_at: repository.updated_at
+              }
+              
+              # Update the database in the background
+              SyncGithubRepositoryJob.perform_later(@project.id)
+            else
+              stats[:github] = { error: "Repository data unavailable. It will be synchronized in the background." }
+            end
+          else
+            stats[:github] = { error: "GitHub connection required to view repository data." }
           end
         end
         

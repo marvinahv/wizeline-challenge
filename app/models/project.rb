@@ -3,6 +3,7 @@ class Project < ApplicationRecord
   belongs_to :owner, class_name: 'User'
   belongs_to :manager, class_name: 'User'
   has_many :tasks, dependent: :destroy
+  has_one :github_repository_datum, dependent: :destroy
 
   # Validations
   validates :name, presence: true, uniqueness: true

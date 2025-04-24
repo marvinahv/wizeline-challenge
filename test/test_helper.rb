@@ -2,6 +2,9 @@ ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"
 require "rails/test_help"
 
+# Set ActiveJob to use the test adapter in the test environment
+ActiveJob::Base.queue_adapter = :test
+
 # Configure ActiveRecord encryption for tests
 ActiveRecord::Encryption.configure(
   primary_key: "test_primary_key_for_tests_only_0123456789",

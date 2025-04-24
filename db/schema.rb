@@ -10,9 +10,40 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_24_063459) do
+ActiveRecord::Schema[8.0].define(version: 2025_04_24_175000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "delayed_jobs", force: :cascade do |t|
+    t.integer "priority", default: 0, null: false
+    t.integer "attempts", default: 0, null: false
+    t.text "handler", null: false
+    t.text "last_error"
+    t.datetime "run_at"
+    t.datetime "locked_at"
+    t.datetime "failed_at"
+    t.string "locked_by"
+    t.string "queue"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.index ["priority", "run_at"], name: "delayed_jobs_priority"
+  end
+
+  create_table "github_repository_data", force: :cascade do |t|
+    t.bigint "project_id", null: false
+    t.string "full_name", null: false
+    t.string "name", null: false
+    t.text "description"
+    t.string "url", null: false
+    t.integer "stargazers_count", default: 0
+    t.integer "forks_count", default: 0
+    t.integer "open_issues_count", default: 0
+    t.datetime "last_synced_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["project_id", "full_name"], name: "index_github_repository_data_on_project_id_and_full_name", unique: true
+    t.index ["project_id"], name: "index_github_repository_data_on_project_id"
+  end
 
   create_table "projects", force: :cascade do |t|
     t.string "name"
@@ -49,6 +80,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_24_063459) do
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
+  add_foreign_key "github_repository_data", "projects"
   add_foreign_key "projects", "users", column: "manager_id"
   add_foreign_key "projects", "users", column: "owner_id"
   add_foreign_key "tasks", "projects"

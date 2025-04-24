@@ -44,6 +44,10 @@ gem "cancancan"
 # GitHub API client
 gem "octokit", "~> 6.0"
 
+# Backend gems for background processing
+gem "delayed_job_active_record"
+gem "daemons" # For running delayed_job as a daemon
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
