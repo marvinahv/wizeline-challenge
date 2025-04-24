@@ -18,7 +18,7 @@ VCR.configure do |config|
   config.hook_into :webmock
   
   # Filter out sensitive data such as API tokens
-  config.filter_sensitive_data('<GITHUB_TOKEN>') { ENV['GITHUB_TOKEN'] || 'dummy_token' }
+  config.filter_sensitive_data('<GITHUB_TOKEN>') { ENV['TEST_USER_GITHUB_TOKEN'] }
   
   # Allow VCR to record real HTTP requests by default
   config.default_cassette_options = {
