@@ -41,6 +41,9 @@ gem "jwt"
 # CanCanCan for authorization
 gem "cancancan"
 
+# GitHub API client
+gem "octokit", "~> 6.0"
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
@@ -53,4 +56,8 @@ group :development, :test do
   
   # Factory Bot for test data creation
   gem "factory_bot_rails"
+  
+  # HTTP mocking and recording for tests
+  gem "vcr"
+  gem "webmock"
 end
