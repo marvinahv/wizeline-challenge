@@ -156,3 +156,16 @@
   - an endpoint to edit the repo of a project
   - an endpoint to remove a github repo from a project
   - etc
+- added GitHub repository integration to projects:
+  - created migration to add github_repo field to projects
+  - implemented validation to ensure github_repo follows the "owner/repo" format
+  - added test cases for github_repo validation and integration with existing tests
+  - updated project controller to handle github_repo field in params
+  - expanded controller tests to verify proper github_repo handling
+  - updated API documentation to include github_repo field
+  - ensured all tests pass with the new field
+- fixed segmentation fault issues in test suite:
+  - identified memory issues when running full test suite with VCR and WebMock
+  - added fix to README documenting the use of PARALLEL_WORKERS=1 to prevent segmentation faults
+  - verified that tests run successfully with the parallel worker limit
+  - ensured individual test files still run correctly without memory issues
