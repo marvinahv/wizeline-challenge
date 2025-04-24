@@ -169,3 +169,36 @@
   - added fix to README documenting the use of PARALLEL_WORKERS=1 to prevent segmentation faults
   - verified that tests run successfully with the parallel worker limit
   - ensured individual test files still run correctly without memory issues
+- implemented VCR for GitHub API testing:
+  - added VCR and WebMock gems to the development and test environments
+  - configured VCR in the test helper to record HTTP interactions for tests
+  - set up security-focused filtering to ensure GitHub tokens are never recorded in cassettes
+  - created a dedicated directory for VCR cassettes
+  - updated user factory to include a GitHub token trait using TEST_USER_GITHUB_TOKEN environment variable
+  - implemented GitHub service to securely handle token usage without exposing sensitive data in logs
+  - created comprehensive tests for the GitHub service:
+    - test for successfully fetching repository data
+    - test for gracefully handling API errors when repositories don't exist
+  - updated error handling in GitHub service to ensure tokens are never leaked in logs
+  - verified that VCR cassettes were properly created with sensitive data filtered
+- added GitHub repository integration to projects:
+  - created migration to add github_repo field to projects
+  - implemented validation to ensure github_repo follows the "owner/repo" format
+  - added test cases for github_repo validation and integration with existing tests
+  - updated project controller to handle github_repo field in params
+  - expanded controller tests to verify proper github_repo handling
+  - updated API documentation to include github_repo field
+  - ensured all tests pass with the new field 
+- added project statistics endpoint with GitHub integration:
+  - implemented a stats action in the ProjectsController
+  - added a nested route for project stats
+  - implemented proper authorization so only project owners (admins) can access stats
+  - displayed project task statistics (total, todo, in-progress, done)
+  - integrated GitHub repository data into stats when a repo is linked
+  - created comprehensive tests for the stats endpoint:
+    - test for projects without GitHub repo
+    - test for projects with GitHub repo (using VCR)
+    - tests for proper authorization (only owner can access)
+  - simplified implementation by focusing only on essential GitHub data
+  - ensured all tests pass with proper authorization
+  - removed commit data for time's sake; since stats data is not specified, but with more time, we would probably add commit data too
