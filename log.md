@@ -112,3 +112,11 @@
   - project managers can see all tasks for projects they manage, sorted by creation date (oldest first)
   - developers can only see tasks assigned to them, sorted by creation date (oldest first)
   - security enhancements ensure other managers cannot see tasks for projects they don't manage
+- implemented GitHub integration with Personal Access Tokens (PATs):
+  - added github_token field to User model with built-in Rails encryption
+  - configured ActiveRecord::Encryption for secure token storage
+  - added github_connected? helper method to check if a user has connected their GitHub account
+  - added comprehensive tests for GitHub token functionality:
+    - tests for the github_connected? method
+    - tests to verify token encryption is working correctly
+  - chose PAT approach for simplicity and security in the API-only application
