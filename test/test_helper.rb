@@ -9,6 +9,27 @@ ActiveRecord::Encryption.configure(
   key_derivation_salt: "test_derivation_salt_for_tests_only_0123456789"
 )
 
+# Configure VCR for API request recording and playback
+require 'vcr'
+require 'webmock/minitest'
+
+VCR.configure do |config|
+  config.cassette_library_dir = "test/vcr_cassettes"
+  config.hook_into :webmock
+  
+  # Filter out sensitive data such as API tokens
+  config.filter_sensitive_data('<GITHUB_TOKEN>') { ENV['GITHUB_TOKEN'] || 'dummy_token' }
+  
+  # Allow VCR to record real HTTP requests by default
+  config.default_cassette_options = {
+    record: :once,
+    match_requests_on: [:method, :uri, :body]
+  }
+  
+  # Disallow real HTTP connections when no cassette is being used
+  config.allow_http_connections_when_no_cassette = false
+end
+
 module ActiveSupport
   class TestCase
     # Run tests in parallel with specified workers
