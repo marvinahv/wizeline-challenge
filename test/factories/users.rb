@@ -23,5 +23,10 @@ FactoryBot.define do
       name { "Developer User" }
       role { "developer" }
     end
+    
+    # User with GitHub connected
+    trait :with_github do
+      github_token { ENV["TEST_USER_GITHUB_TOKEN"] }
+    end
   end
 end 
