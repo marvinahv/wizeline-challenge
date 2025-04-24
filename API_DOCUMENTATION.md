@@ -70,6 +70,8 @@ When creating or updating user passwords, they must meet the following requireme
     "name": "Project A",
     "owner_id": 1,
     "manager_id": 2,
+    "github_repo": "octocat/Hello-World",
+    "tasks_count": 5,
     "created_at": "2023-04-01T12:00:00Z",
     "updated_at": "2023-04-01T12:00:00Z"
   },
@@ -78,11 +80,15 @@ When creating or updating user passwords, they must meet the following requireme
     "name": "Project B",
     "owner_id": 1,
     "manager_id": 2,
+    "github_repo": null,
+    "tasks_count": 2,
     "created_at": "2023-03-15T09:30:00Z",
     "updated_at": "2023-03-15T09:30:00Z"
   }
 ]
 ```
+
+**Performance Note:** This endpoint uses eager loading to efficiently retrieve associated data for each project, avoiding N+1 queries.
 
 #### Get Project Details
 
@@ -99,10 +105,77 @@ When creating or updating user passwords, they must meet the following requireme
   "name": "Project A",
   "owner_id": 1,
   "manager_id": 2,
+  "github_repo": "octocat/Hello-World",
+  "tasks_count": 5,
   "created_at": "2023-04-01T12:00:00Z",
   "updated_at": "2023-04-01T12:00:00Z"
 }
 ```
+
+**Performance Note:** This endpoint uses eager loading to retrieve the project with its associated tasks, owner, and manager data in a single query.
+
+#### Get Project Statistics
+
+**Endpoint:** `GET /api/v1/projects/:id/stats`
+
+**Authentication:** Required
+
+**Authorization:** Only the admin who created the project can access its statistics
+
+**Description:** Returns detailed statistics about a project, including task counts by status and GitHub repository data if available.
+
+**Response for project with GitHub repository:**
+```json
+{
+  "project": {
+    "id": 1,
+    "name": "Project A",
+    "tasks": {
+      "total": 5,
+      "todo": 2,
+      "in_progress": 2,
+      "done": 1
+    },
+    "created_at": "2023-04-01T12:00:00Z",
+    "updated_at": "2023-04-01T12:00:00Z"
+  },
+  "github": {
+    "name": "Hello-World",
+    "full_name": "octocat/Hello-World",
+    "description": "This is a sample repository",
+    "url": "https://github.com/octocat/Hello-World",
+    "stats": {
+      "stars": 80,
+      "forks": 20,
+      "open_issues": 5
+    },
+    "last_synced_at": "2023-04-15T13:45:22Z",
+    "created_at": "2023-04-15T13:45:22Z",
+    "updated_at": "2023-04-15T13:45:22Z"
+  }
+}
+```
+
+**Response for project without GitHub repository:**
+```json
+{
+  "project": {
+    "id": 2,
+    "name": "Project B",
+    "tasks": {
+      "total": 3,
+      "todo": 1,
+      "in_progress": 1,
+      "done": 1
+    },
+    "created_at": "2023-03-15T09:30:00Z",
+    "updated_at": "2023-03-15T09:30:00Z"
+  },
+  "github": null
+}
+```
+
+**Performance Note:** This endpoint efficiently calculates task counts using a single database query with GROUP BY, and uses data cached in the database for GitHub repository information when possible.
 
 #### Create Project
 
@@ -131,6 +204,7 @@ When creating or updating user passwords, they must meet the following requireme
   "owner_id": 1,
   "manager_id": 2,
   "github_repo": "octocat/Hello-World",
+  "tasks_count": 0,
   "created_at": "2023-04-16T15:30:00Z",
   "updated_at": "2023-04-16T15:30:00Z"
 }
@@ -139,6 +213,7 @@ When creating or updating user passwords, they must meet the following requireme
 **Notes:**
 - `github_repo` is optional but if provided must follow the format `owner/repository`
 - `github_repo` allows linking the project to a GitHub repository for integration features
+- When a GitHub repository is linked, a background job is automatically scheduled to fetch and cache repository data
 
 #### Update Project
 
@@ -167,10 +242,14 @@ When creating or updating user passwords, they must meet the following requireme
   "owner_id": 1,
   "manager_id": 3,
   "github_repo": "octocat/Updated-Repo",
+  "tasks_count": 5,
   "created_at": "2023-04-01T12:00:00Z",
   "updated_at": "2023-04-16T16:15:00Z"
 }
 ```
+
+**Notes:**
+- If the GitHub repository is changed, a background job is automatically scheduled to fetch updated repository data
 
 #### Delete Project
 
@@ -181,6 +260,9 @@ When creating or updating user passwords, they must meet the following requireme
 **Authorization:** Only the admin who created the project can delete it
 
 **Response:** Status 204 No Content
+
+**Notes:**
+- Deleting a project will also delete all associated tasks (cascade delete)
 
 ### Tasks
 
@@ -219,6 +301,8 @@ When creating or updating user passwords, they must meet the following requireme
 ]
 ```
 
+**Performance Note:** This endpoint uses eager loading to efficiently retrieve associated data for each task, avoiding N+1 queries.
+
 #### Get Task Details
 
 **Endpoint:** `GET /api/v1/tasks/:id`
@@ -239,6 +323,8 @@ When creating or updating user passwords, they must meet the following requireme
   "updated_at": "2023-04-01T14:00:00Z"
 }
 ```
+
+**Performance Note:** This endpoint uses eager loading to retrieve the task with its project, assignee, and other related data in a single query.
 
 #### Create Task
 
@@ -270,6 +356,11 @@ When creating or updating user passwords, they must meet the following requireme
   "updated_at": "2023-04-16T17:00:00Z"
 }
 ```
+
+**Notes:**
+- Tasks are automatically assigned the status "todo" when created
+- The assignee must be a user with the "developer" role
+- Creating a task automatically updates the project's task count via counter cache
 
 #### Update Task
 
@@ -330,6 +421,9 @@ When creating or updating user passwords, they must meet the following requireme
 }
 ```
 
+**Notes:**
+- Status must be one of: "todo", "in_progress", or "done"
+
 #### Delete Task
 
 **Endpoint:** `DELETE /api/v1/tasks/:id`
@@ -340,6 +434,18 @@ When creating or updating user passwords, they must meet the following requireme
 
 **Response:** Status 204 No Content
 
+**Notes:**
+- Deleting a task automatically updates the project's task count via counter cache
+
+## GitHub Integration
+
+The API integrates with GitHub to provide repository data for projects. This is handled automatically when:
+- A project is created with a valid `github_repo` value
+- A project's `github_repo` value is updated
+- The stats endpoint is accessed for a project with a GitHub repository
+
+GitHub data is cached in the database for 24 hours to improve performance and avoid GitHub API rate limits. If data is older than 24 hours, it will be refreshed in the background when the stats endpoint is accessed.
+
 ## Error Responses
 
 ### Authentication Errors
@@ -347,7 +453,7 @@ When creating or updating user passwords, they must meet the following requireme
 **Status:** 401 Unauthorized
 ```json
 {
-  "error": "Not authenticated"
+  "error": "Unauthorized"
 }
 ```
 
@@ -379,4 +485,13 @@ When creating or updating user passwords, they must meet the following requireme
 {
   "error": "Record not found"
 }
-``` 
+```
+
+## Performance Considerations
+
+The API is optimized for performance with the following features:
+- Eager loading of associated records to prevent N+1 query issues
+- Counter caches for efficient counting of associated records
+- Group queries for efficient aggregation of task statistics
+- Background processing for GitHub API integration
+- Database caching of GitHub repository data to reduce API calls 
