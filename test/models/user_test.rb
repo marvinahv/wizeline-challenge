@@ -158,7 +158,7 @@ class UserTest < ActiveSupport::TestCase
     raw_token_from_db = ActiveRecord::Base.connection.execute(
       "SELECT github_token FROM users WHERE id = #{user.id}"
     ).first["github_token"]
-us
+    
     # puts "Token: #{token}"
     # puts "Raw token from DB: #{raw_token_from_db}"
     
