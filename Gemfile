@@ -42,7 +42,7 @@ gem "jwt"
 gem "cancancan"
 
 # GitHub API client
-gem "octokit", "~> 6.0"
+gem "octokit", "~> 10.0"
 
 # Backend gems for background processing
 gem "delayed_job_active_record"
