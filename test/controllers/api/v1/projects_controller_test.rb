@@ -310,6 +310,100 @@ class Api::V1::ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_not_includes project_ids, project4.id
   end
   
+  test "only admin who owns the project can fetch project statistics" do
+    # Create a project without GitHub repo
+    project = create(:project, owner: @admin, manager: @project_manager)
+    
+    # Create some tasks in different statuses
+    create(:task, project: project, assignee: @developer, status: 'todo')
+    create(:task, project: project, assignee: @developer, status: 'todo')
+    create(:task, project: project, assignee: @developer, status: 'in_progress')
+    create(:task, project: project, assignee: @developer, status: 'done')
+    
+    # Admin owner can access stats
+    get stats_api_v1_project_path(project),
+        headers: { 'Authorization' => "Bearer #{@admin_token}" }
+    
+    assert_response :success
+    
+    # Parse and check the response
+    json_response = JSON.parse(response.body)
+    
+    # Check project stats
+    assert_equal project.id, json_response["project"]["id"]
+    assert_equal project.name, json_response["project"]["name"]
+    assert_equal 4, json_response["project"]["tasks"]["total"]
+    assert_equal 2, json_response["project"]["tasks"]["todo"]
+    assert_equal 1, json_response["project"]["tasks"]["in_progress"]
+    assert_equal 1, json_response["project"]["tasks"]["done"]
+    
+    # GitHub data should be nil since no repo is linked
+    assert_nil json_response["github"]
+    
+    # Other admin cannot access stats
+    get stats_api_v1_project_path(project),
+        headers: { 'Authorization' => "Bearer #{@other_admin_token}" }
+    
+    assert_response :forbidden
+    
+    # Project manager cannot access stats
+    get stats_api_v1_project_path(project),
+        headers: { 'Authorization' => "Bearer #{@project_manager_token}" }
+    
+    assert_response :forbidden
+    
+    # Developer cannot access stats
+    get stats_api_v1_project_path(project),
+        headers: { 'Authorization' => "Bearer #{@developer_token}" }
+    
+    assert_response :forbidden
+  end
+  
+  test "admin can access stats for project with GitHub repo linked" do
+    # Create a GitHub-connected user for testing
+    github_admin = create(:user, :admin, :with_github)
+    github_admin_token = generate_token_for(github_admin)
+    
+    # Create a project with GitHub repo
+    project = create(:project, 
+                    owner: github_admin, 
+                    manager: @project_manager, 
+                    github_repo: "octocat/Hello-World")
+    
+    # Create some tasks
+    create(:task, project: project, assignee: @developer, status: 'todo')
+    create(:task, project: project, assignee: @developer, status: 'done')
+    
+    # Test with VCR to mock the GitHub API
+    VCR.use_cassette("github/stats_with_repo") do
+      get stats_api_v1_project_path(project),
+          headers: { 'Authorization' => "Bearer #{github_admin_token}" }
+      
+      assert_response :success
+      
+      # Parse and check the response
+      json_response = JSON.parse(response.body)
+      
+      # Check project stats
+      assert_equal project.id, json_response["project"]["id"]
+      assert_equal project.name, json_response["project"]["name"]
+      assert_equal 2, json_response["project"]["tasks"]["total"]
+      assert_equal 1, json_response["project"]["tasks"]["todo"]
+      assert_equal 0, json_response["project"]["tasks"]["in_progress"]
+      assert_equal 1, json_response["project"]["tasks"]["done"]
+      
+      # GitHub data should be present
+      assert_not_nil json_response["github"]
+      assert_equal "Hello-World", json_response["github"]["name"]
+      assert_equal "octocat/Hello-World", json_response["github"]["full_name"]
+      
+      # Stats section should be present with basic repo metrics
+      assert json_response["github"]["stats"].has_key?("stars")
+      assert json_response["github"]["stats"].has_key?("forks")
+      assert json_response["github"]["stats"].has_key?("open_issues")
+    end
+  end
+  
   private
   
   def generate_token_for(user)

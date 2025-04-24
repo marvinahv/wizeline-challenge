@@ -27,6 +27,9 @@ class Ability
         
         # Admin can delete only projects they own
         can :destroy, Project, owner_id: user.id
+        
+        # Admin can see stats only for projects they own
+        can :stats, Project, owner_id: user.id
       end
       
       # Project managers can manage tasks within their projects

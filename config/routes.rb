@@ -15,6 +15,11 @@ Rails.application.routes.draw do
       resources :projects do
         # Nested task routes for project-specific tasks
         resources :tasks, only: [:index, :create]
+        
+        # Custom route for project statistics
+        member do
+          get 'stats', action: 'stats', as: 'stats'
+        end
       end
       
       # Task routes that don't need project context

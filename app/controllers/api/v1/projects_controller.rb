@@ -2,7 +2,7 @@ module Api
   module V1
     class ProjectsController < BaseController
       before_action :authenticate_user!
-      before_action :set_project, only: [:show, :update, :destroy]
+      before_action :set_project, only: [:show, :update, :destroy, :stats]
       
       # GET /api/v1/projects
       def index
@@ -64,6 +64,55 @@ module Api
         head :no_content
       end
       
+      # GET /api/v1/projects/:id/stats
+      def stats
+        authorize! :stats, @project
+        
+        # Collect project statistics
+        stats = {
+          project: {
+            id: @project.id,
+            name: @project.name,
+            tasks: {
+              total: @project.tasks.count,
+              todo: @project.tasks.where(status: 'todo').count,
+              in_progress: @project.tasks.where(status: 'in_progress').count,
+              done: @project.tasks.where(status: 'done').count
+            },
+            created_at: @project.created_at,
+            updated_at: @project.updated_at
+          },
+          github: nil
+        }
+        
+        # Add GitHub data if repository is linked and user has a GitHub token
+        if @project.github_repo.present? && current_user.github_connected?
+          github_service = GithubService.new(current_user.github_token)
+          
+          # Fetch repository data
+          repository = github_service.fetch_repository(@project.github_repo)
+          
+          if repository
+            # Add GitHub data to response
+            stats[:github] = {
+              name: repository.name,
+              full_name: repository.full_name,
+              description: repository.description,
+              url: repository.html_url,
+              stats: {
+                stars: repository.stargazers_count,
+                forks: repository.forks_count,
+                open_issues: repository.open_issues_count
+              },
+              created_at: repository.created_at,
+              updated_at: repository.updated_at
+            }
+          end
+        end
+        
+        render json: stats
+      end
+      
       private
       
       def set_project
@@ -71,7 +120,7 @@ module Api
       end
       
       def project_params
-        params.require(:project).permit(:name, :manager_id)
+        params.require(:project).permit(:name, :manager_id, :github_repo)
       end
       
       def user_is_admin?
