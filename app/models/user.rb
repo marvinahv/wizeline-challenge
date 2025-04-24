@@ -2,6 +2,9 @@ class User < ApplicationRecord
   # Use Active Model's SecurePassword to handle password hashing
   has_secure_password
 
+  # Encrypt GitHub token
+  encrypts :github_token
+
   # Custom password validation
   PASSWORD_REQUIREMENTS = /\A
     (?=.*\d)           # Must contain at least one number
@@ -43,5 +46,10 @@ class User < ApplicationRecord
       Rails.application.credentials.secret_key_base,
       'HS256'
     )
+  end
+  
+  # Check if user has connected GitHub account
+  def github_connected?
+    github_token.present?
   end
 end

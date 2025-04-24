@@ -127,4 +127,41 @@ class UserTest < ActiveSupport::TestCase
     assert_equal "project_manager", project_manager.role
     assert_equal "developer", developer.role
   end
+  
+  # GitHub integration tests
+  test "github_connected? returns false when github_token is nil" do
+    user = build(:user, github_token: nil)
+    assert_not user.github_connected?
+  end
+  
+  test "github_connected? returns false when github_token is blank" do
+    user = build(:user, github_token: "")
+    assert_not user.github_connected?
+  end
+  
+  test "github_connected? returns true when github_token is present" do
+    user = build(:user, github_token: "github_pat_123456789")
+    assert user.github_connected?
+  end
+  
+  test "github_token is encrypted" do
+    token = "github_pat_123456789"
+    user = create(:user, github_token: token)
+    
+    # Reload user from database
+    user.reload
+    
+    # Token should be decrypted when accessed through the model
+    assert_equal token, user.github_token
+    
+    # Direct SQL query should show the token is not stored in plaintext
+    raw_token_from_db = ActiveRecord::Base.connection.execute(
+      "SELECT github_token FROM users WHERE id = #{user.id}"
+    ).first["github_token"]
+us
+    # puts "Token: #{token}"
+    # puts "Raw token from DB: #{raw_token_from_db}"
+    
+    assert_not_equal token, raw_token_from_db
+  end
 end 
