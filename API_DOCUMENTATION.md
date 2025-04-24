@@ -117,7 +117,8 @@ When creating or updating user passwords, they must meet the following requireme
 {
   "project": {
     "name": "New Project",
-    "manager_id": 2
+    "manager_id": 2,
+    "github_repo": "octocat/Hello-World"
   }
 }
 ```
@@ -129,10 +130,15 @@ When creating or updating user passwords, they must meet the following requireme
   "name": "New Project",
   "owner_id": 1,
   "manager_id": 2,
+  "github_repo": "octocat/Hello-World",
   "created_at": "2023-04-16T15:30:00Z",
   "updated_at": "2023-04-16T15:30:00Z"
 }
 ```
+
+**Notes:**
+- `github_repo` is optional but if provided must follow the format `owner/repository`
+- `github_repo` allows linking the project to a GitHub repository for integration features
 
 #### Update Project
 
@@ -147,7 +153,8 @@ When creating or updating user passwords, they must meet the following requireme
 {
   "project": {
     "name": "Updated Project Name",
-    "manager_id": 3
+    "manager_id": 3,
+    "github_repo": "octocat/Updated-Repo"
   }
 }
 ```
@@ -159,6 +166,7 @@ When creating or updating user passwords, they must meet the following requireme
   "name": "Updated Project Name",
   "owner_id": 1,
   "manager_id": 3,
+  "github_repo": "octocat/Updated-Repo",
   "created_at": "2023-04-01T12:00:00Z",
   "updated_at": "2023-04-16T16:15:00Z"
 }

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_24_043740) do
+ActiveRecord::Schema[8.0].define(version: 2025_04_24_063459) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -21,6 +21,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_24_043740) do
     t.bigint "manager_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "github_repo"
     t.index ["manager_id"], name: "index_projects_on_manager_id"
     t.index ["name"], name: "index_projects_on_name", unique: true
     t.index ["owner_id"], name: "index_projects_on_owner_id"

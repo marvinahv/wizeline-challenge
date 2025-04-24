@@ -88,4 +88,50 @@ class ProjectTest < ActiveSupport::TestCase
     assert_equal project_manager, project.manager
     assert_equal "project_manager", project.manager.role
   end
+  
+  test "can have a github repository associated" do
+    admin = create(:user, :admin)
+    project_manager = create(:user, :project_manager)
+    repo_name = "octocat/Hello-World"
+    project = create(:project, owner: admin, manager: project_manager, github_repo: repo_name)
+    assert_equal repo_name, project.github_repo
+  end
+  
+  test "github_repo format is valid" do
+    admin = create(:user, :admin)
+    project_manager = create(:user, :project_manager)
+    
+    # Valid format: owner/repo
+    valid_repo = build(:project, owner: admin, manager: project_manager, github_repo: "octocat/Hello-World")
+    assert valid_repo.valid?
+    
+    # Invalid formats
+    invalid_formats = [
+      "octocat", # Missing repository name
+      "octocat/", # Missing repository name
+      "/Hello-World", # Missing owner
+      "octocat/Hello/World", # Too many segments
+      "octo@cat/Hello-World" # Invalid character in owner
+    ]
+    
+    invalid_formats.each do |invalid_repo|
+      project = build(:project, owner: admin, manager: project_manager, github_repo: invalid_repo)
+      assert_not project.valid?, "#{invalid_repo} should be invalid"
+      assert_includes project.errors.full_messages, "Github repo format is invalid"
+    end
+  end
+  
+  test "github_repo can be nil" do
+    admin = create(:user, :admin)
+    project_manager = create(:user, :project_manager)
+    project = build(:project, owner: admin, manager: project_manager, github_repo: nil)
+    assert project.valid?
+  end
+  
+  test "github_repo can be blank" do
+    admin = create(:user, :admin)
+    project_manager = create(:user, :project_manager)
+    project = build(:project, owner: admin, manager: project_manager, github_repo: "")
+    assert project.valid?
+  end
 end 

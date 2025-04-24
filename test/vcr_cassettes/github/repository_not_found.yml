@@ -14,28 +14,32 @@ http_interactions:
       Content-Type:
       - application/json
       Authorization:
-      - token test_github_token
+      - token <GITHUB_TOKEN>
       Accept-Encoding:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
   response:
     status:
-      code: 401
-      message: Unauthorized
+      code: 404
+      message: Not Found
     headers:
       Date:
-      - Thu, 24 Apr 2025 05:56:54 GMT
+      - Thu, 24 Apr 2025 06:47:14 GMT
       Content-Type:
       - application/json; charset=utf-8
-      Content-Length:
-      - '95'
+      Github-Authentication-Token-Expiration:
+      - '2025-05-24 00:05:43 -0600'
       X-Github-Media-Type:
       - github.v3; format=json
+      X-Accepted-Github-Permissions:
+      - metadata=read
+      X-Github-Api-Version-Selected:
+      - '2022-11-28'
       X-Ratelimit-Limit:
-      - '60'
+      - '5000'
       X-Ratelimit-Remaining:
-      - '58'
+      - '4998'
       X-Ratelimit-Reset:
-      - '1745477814'
+      - '1745479139'
       X-Ratelimit-Used:
       - '2'
       X-Ratelimit-Resource:
@@ -61,12 +65,14 @@ http_interactions:
       - default-src 'none'
       Vary:
       - Accept-Encoding, Accept, X-Requested-With
+      Transfer-Encoding:
+      - chunked
       X-Github-Request-Id:
-      - EB9C:FF183:3E212C9:7BEA59A:6809D2A6
+      - EF7C:3D09C1:44766F9:8869462:6809DE72
       Server:
       - github.com
     body:
-      encoding: UTF-8
-      string: '{"message":"Bad credentials","documentation_url":"https://docs.github.com/rest","status":"401"}'
-  recorded_at: Thu, 24 Apr 2025 05:56:54 GMT
+      encoding: ASCII-8BIT
+      string: '{"message":"Not Found","documentation_url":"https://docs.github.com/rest/repos/repos#get-a-repository","status":"404"}'
+  recorded_at: Thu, 24 Apr 2025 06:47:13 GMT
 recorded_with: VCR 6.3.1

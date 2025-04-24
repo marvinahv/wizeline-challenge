@@ -98,6 +98,9 @@ To run the test suite:
 # Run all tests
 rails test
 
+# If you encounter segmentation faults, use:
+PARALLEL_WORKERS=1 rails test
+
 # Run specific test files
 rails test test/models/user_test.rb
 rails test test/controllers/api/v1/projects_controller_test.rb

@@ -6,6 +6,11 @@ class Project < ApplicationRecord
 
   # Validations
   validates :name, presence: true, uniqueness: true
+  validates :github_repo, format: { 
+    with: /\A[a-zA-Z0-9\-_]+\/[a-zA-Z0-9\-_]+\z/, 
+    message: 'format is invalid',
+    allow_blank: true
+  }
   validate :owner_must_be_admin
   validate :manager_must_be_project_manager
 
