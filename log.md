@@ -151,3 +151,8 @@
     - test for gracefully handling API errors when repositories don't exist
   - updated error handling in GitHub service to ensure tokens are never leaked in logs
   - verified that VCR cassettes were properly created with sensitive data filtered
+- because of the time constraints and not being specified in the document, we are also assuming that a project is linked to a github repo. assuming there would be in a more robust solution:
+  - an endpoint to add a github repo to a project
+  - an endpoint to edit the repo of a project
+  - an endpoint to remove a github repo from a project
+  - etc
