@@ -120,3 +120,21 @@
     - tests for the github_connected? method
     - tests to verify token encryption is working correctly
   - chose PAT approach for simplicity and security in the API-only application
+  - the requirements say authenticated users should be able to use the github api to get and display data; so we are assuming there already exists a mechanism for requesting, granting, and storing the github token for time's sake
+  - in a real-life production implementation, we would include:
+    - proper OAuth 2.0 integration flow with GitHub:
+      - implementation of authorization request endpoint (/auth/github)
+      - GitHub callback endpoint to handle authorization code exchange
+      - token refresh mechanisms for OAuth tokens with expiration
+    - secure token management:
+      - automatic token refresh before expiration
+      - token revocation when users disconnect their GitHub account
+      - handling GitHub API rate limits with appropriate backoff strategies
+    - user interface considerations:
+      - clear connect/disconnect GitHub account options
+      - transparency about what data is accessed and why
+      - handling edge cases like token invalidation by the user on GitHub's side
+    - advanced security measures:
+      - token scope limitation to minimum required permissions
+      - audit logging for all GitHub API access
+      - regular security reviews of GitHub integration code
